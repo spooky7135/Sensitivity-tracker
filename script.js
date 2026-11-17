@@ -42,7 +42,10 @@ const siegeFovInput = document.getElementById("siege-fov");
 const siegeScopeSelect = document.getElementById("siege-scope");
 const scopeResult = document.getElementById("scope-result");
 const scopeNote = document.getElementById("scope-note");
-const xFactorResult = document.getElementById("xfactor-result");
+const settingsBox = document.getElementById("settings-box");
+const hipSetting = document.getElementById("hip-setting");
+const xFactorRow = document.getElementById("xfactor-row");
+const xFactorSetting = document.getElementById("xfactor-setting");
 
 // ---------- FILL THE DROPDOWNS ----------
 // For each game, create an <option> whose value is its index in games.
@@ -237,6 +240,7 @@ function updateResults() {
         resultLabel.textContent = (hip.exact ? "" : "Suggested ") + toGame.name + " slider";
         hipNote.textContent = siegeHipNote(hip);
         hipNote.hidden = false;
+        hipSetting.textContent = siegeSettingLine("MouseSensitivityMultiplierUnit", hip.multiplier);
     } else {
         lastConverted = needed.toFixed(4);
         lastMultiplier = null;
@@ -250,21 +254,21 @@ function updateResults() {
     rulerFill.style.width = rulerPercent(cm) + "%"; // CSS animates the change
     copyButton.disabled = false;
 
-    updateScopes(toIsSiege, toGame, cm);
+    updateScopes(toIsSiege, toGame);
     return true;
 }
 
 // ---------- SIEGE SCOPES ----------
 // Shows the slider for the chosen scope and the one XFactorAiming value.
-// hipCm is the mouse travel for a full turn that every scope should match.
-function updateScopes(show, toGame, hipCm) {
+function updateScopes(show, toGame) {
     siegeScopes.hidden = !show;
     if (!show) {
         return;
     }
 
+    // Cleared first; filled in below only when there is a valid scope result.
     scopeNote.textContent = "";
-    xFactorResult.textContent = "";
+    xFactorRow.hidden = true;
 
     const gameScopes = scopes.filter(function (scope) {
         return scope.game_id === toGame.id;
@@ -289,8 +293,9 @@ function updateScopes(show, toGame, hipCm) {
     const scope = siegeScopeSlider(selected.fov_multiplier, fov, xFactor);
 
     scopeResult.textContent = siegeScopeResultText(selected.label, scope);
-    scopeNote.textContent = siegeScopeNote(scope, hipCm);
-    xFactorResult.textContent = siegeXFactorText(xFactor);
+    scopeNote.textContent = siegeScopeNote(scope);
+    xFactorSetting.textContent = siegeSettingLine("XFactorAiming", xFactor);
+    xFactorRow.hidden = false;
 }
 
 // ---------- LIVE RESULTS ----------
@@ -362,23 +367,39 @@ swapButton.addEventListener("click", function () {
     liveUpdate();
 });
 
-// ---------- COPY BUTTON ----------
-copyButton.addEventListener("click", async function () {
-    if (lastConverted === null) {
-        return;
-    }
-
+// ---------- COPY BUTTONS ----------
+// Copies text and briefly shows "Copied" on the button that was clicked.
+// Used by the main Copy button and by each settings file line.
+async function copyText(button, text) {
     // The clipboard can refuse (old browser, blocked permission), so try/catch.
     try {
-        await navigator.clipboard.writeText(lastConverted);
-        copyButton.textContent = "Copied";
+        await navigator.clipboard.writeText(text);
+        button.textContent = "Copied";
     } catch (err) {
         console.error(err);
-        copyButton.textContent = "Copy failed";
+        button.textContent = "Copy failed";
     }
 
     // Put the normal label back after 1.5 seconds.
     setTimeout(function () {
-        copyButton.textContent = "Copy";
+        button.textContent = "Copy";
     }, 1500);
+}
+
+copyButton.addEventListener("click", function () {
+    if (lastConverted !== null) {
+        copyText(copyButton, lastConverted);
+    }
+});
+
+// One listener for the whole settings box ("event delegation").
+// It checks which Copy button was clicked, then copies the line that button
+// points at through its data-copy-target attribute.
+settingsBox.addEventListener("click", function (event) {
+    const button = event.target.closest(".copy-line");
+    if (!button) {
+        return; // the click was somewhere else in the box
+    }
+    const line = document.getElementById(button.dataset.copyTarget).textContent;
+    copyText(button, line);
 });

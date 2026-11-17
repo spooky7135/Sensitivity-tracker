@@ -105,13 +105,16 @@
                 </div>
             </div>
 
-            <p class="result-note">Mouse travel for one full turn: <span id="cm-result">---</span></p>
-            <p class="result-note">eDPI: <span id="edpi-result">---</span></p>
+            <p class="result-meta">
+                <span>Mouse travel per turn <strong id="cm-result">---</strong></span>
+                <span>eDPI <strong id="edpi-result">---</strong></span>
+            </p>
         </section>
 
         <!-- Only shown when converting TO Rainbow Six Siege -->
         <section id="siege-scopes" class="siege-scopes" aria-live="polite" hidden>
-            <h2>Scopes: same mouse travel as hip-fire</h2>
+            <h2>Scopes</h2>
+            <p class="section-intro">Same mouse travel as hip-fire.</p>
 
             <div class="fields">
                 <div class="input-group">
@@ -132,14 +135,36 @@
             </div>
 
             <p class="scope-result" id="scope-result"></p>
-            <p class="result-note" id="scope-note"></p>
-            <p class="result-note" id="xfactor-result"></p>
+            <p class="scope-note" id="scope-note"></p>
 
-            <p class="about" id="siege-about">
-                Scope values follow Ubisoft's 2020 sensitivity guide and have not
-                been confirmed for the current season. Settings file: Documents,
-                My Games, Rainbow Six - Siege, your account folder, GameSettings.ini.
-            </p>
+            <!-- The two lines to paste into Siege's settings file -->
+            <div class="settings-box" id="settings-box">
+                <p class="settings-title">Copy into GameSettings.ini</p>
+
+                <div class="setting-row">
+                    <code id="hip-setting"></code>
+                    <button type="button" class="small-button copy-line" data-copy-target="hip-setting">Copy</button>
+                </div>
+
+                <div class="setting-row" id="xfactor-row">
+                    <code id="xfactor-setting"></code>
+                    <button type="button" class="small-button copy-line" data-copy-target="xfactor-setting">Copy</button>
+                </div>
+            </div>
+
+            <!-- <details> is a built-in toggle: closed until clicked -->
+            <details class="about">
+                <summary>About these numbers</summary>
+                <p>
+                    Scope values follow Ubisoft's 2020 sensitivity guide and have not
+                    been confirmed for the current season. One XFactorAiming value
+                    covers every scope.
+                </p>
+                <p>
+                    Settings file: Documents, My Games, Rainbow Six - Siege,
+                    your account folder, GameSettings.ini.
+                </p>
+            </details>
         </section>
 
     </main>

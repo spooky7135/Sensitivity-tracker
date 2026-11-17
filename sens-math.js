@@ -124,12 +124,11 @@ function speedWords(errorPercent) {
 // hip is the object returned by siegeHipFromNeeded.
 function siegeHipNote(hip) {
     if (hip.exact) {
-        return "Exact match. Leave MouseSensitivityMultiplierUnit at 0.02.";
+        return "Exact match.";
     }
     return (
-        "Slider " + hip.slider + " alone is " + speedWords(hip.errorPercent) +
-        ". Add MouseSensitivityMultiplierUnit = " + hip.multiplier.toFixed(6) +
-        " for an exact match."
+        speedWords(hip.errorPercent) +
+        " than exact. Copy the settings line below for an exact match."
     );
 }
 
@@ -139,25 +138,17 @@ function siegeScopeResultText(label, scope) {
     return start + label + ": " + scope.slider;
 }
 
-// hipCm is the mouse travel for a full turn in hip-fire.
-// A scope that is 0.7% slower needs slightly MORE travel, so we divide.
-function siegeScopeNote(scope, hipCm) {
+// Empty when the scope slider is exact, so the page shows nothing.
+function siegeScopeNote(scope) {
     if (scope.exact) {
         return "";
     }
-    const scopedCm = hipCm / (1 + scope.errorPercent / 100);
-    return (
-        "Closest Siege allows: " + speedWords(scope.errorPercent) +
-        " than an exact match (" + scopedCm.toFixed(2) + " cm instead of " +
-        hipCm.toFixed(2) + " cm)"
-    );
+    return speedWords(scope.errorPercent) + " than exact";
 }
 
-function siegeXFactorText(xFactor) {
-    return (
-        "Settings file: XFactorAiming = " + xFactor.toFixed(6) +
-        " (one value for every scope)"
-    );
+// One line exactly as it is written in GameSettings.ini: Name=value
+function siegeSettingLine(name, value) {
+    return name + "=" + value.toFixed(6);
 }
 
 // ---------- EXPORTS FOR THE TESTS ----------
@@ -178,6 +169,6 @@ if (typeof module !== "undefined") {
         siegeHipNote,
         siegeScopeResultText,
         siegeScopeNote,
-        siegeXFactorText
+        siegeSettingLine
     };
 }
