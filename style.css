@@ -1,12 +1,12 @@
 /* ---------- VARIABLES ---------- */
 :root {
-    --pit: #06100b;      /* page background: black with a green cast */
-    --panel: #0c1a13;    /* input backgrounds */
-    --line: #1f3d2c;     /* borders and the empty ruler */
-    --venom: #3dff7c;    /* the neon green: button and answer */
-    --venom-bright: #7dffa8;
-    --text: #e6f5ec;
-    --muted: #86a595;
+    --pit: #0b0714;      /* page background: black with a purple cast */
+    --panel: #150f24;    /* input backgrounds */
+    --line: #2e2447;     /* borders and the empty ruler */
+    --accent: #b57bff;    /* the neon purple: button and answer */
+    --accent-bright: #d0a8ff;
+    --text: #efe9f8;
+    --muted: #9c90b3;
     --error: #ff8a70;
 
     --display: "Barlow Condensed", "Arial Narrow", sans-serif;
@@ -29,10 +29,10 @@ body {
     font-family: var(--body);
     color: var(--text);
     background-color: var(--pit);
-    /* One faint green haze in the lower left corner. */
+    /* One faint purple haze in the lower left corner. */
     background-image: radial-gradient(
         circle at 0% 100%,
-        rgba(61, 255, 124, 0.13),
+        rgba(181, 123, 255, 0.16),
         transparent 55%
     );
     background-attachment: fixed;
@@ -83,12 +83,12 @@ body {
 
 /* aria-current="page" marks the link for the page you are on. */
 .site-header nav a[aria-current="page"] {
-    color: var(--venom);
-    border-bottom-color: var(--venom);
+    color: var(--accent);
+    border-bottom-color: var(--accent);
 }
 
 a:focus-visible {
-    outline: 2px solid var(--venom);
+    outline: 2px solid var(--accent);
     outline-offset: 3px;
 }
 
@@ -167,19 +167,19 @@ select {
 }
 
 input::placeholder {
-    color: #55705f;
+    color: #655a7c;
 }
 
 input:hover,
 select:hover {
-    border-color: #2f5c43;
+    border-color: #47386b;
 }
 
 input:focus-visible,
 select:focus-visible {
     outline: none;
-    border-color: var(--venom);
-    box-shadow: 0 0 0 1px var(--venom);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
 }
 
 /* ---------- CONVERT BUTTON ---------- */
@@ -190,8 +190,8 @@ select:focus-visible {
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: #03130a; /* dark text on neon: easy to read */
-    background: var(--venom);
+    color: #12071f; /* dark text on neon: easy to read */
+    background: var(--accent);
     border: none;
     border-radius: 2px;
     cursor: pointer;
@@ -199,7 +199,7 @@ select:focus-visible {
 }
 
 .convert-button:hover {
-    background: var(--venom-bright);
+    background: var(--accent-bright);
 }
 
 /* ---------- SWAP AND COPY BUTTONS ---------- */
@@ -209,7 +209,7 @@ select:focus-visible {
     font-family: var(--body);
     font-size: 1.0625rem;
     font-weight: 600;
-    color: var(--venom);
+    color: var(--accent);
     background: transparent;
     border: 1px solid var(--line);
     border-radius: 2px;
@@ -218,8 +218,8 @@ select:focus-visible {
 }
 
 .small-button:hover {
-    border-color: var(--venom);
-    background: rgba(61, 255, 124, 0.08);
+    border-color: var(--accent);
+    background: rgba(181, 123, 255, 0.1);
 }
 
 button:focus-visible {
@@ -269,7 +269,7 @@ button:disabled {
     font-weight: 700;
     font-size: clamp(4rem, 18vw, 6.5rem);
     line-height: 1;
-    color: var(--venom);
+    color: var(--accent);
     font-variant-numeric: tabular-nums; /* digits all the same width */
 }
 
@@ -289,7 +289,7 @@ button:disabled {
 .ruler-fill {
     width: 0%; /* script.js sets this after a conversion */
     height: 100%;
-    background: var(--venom);
+    background: var(--accent);
     transition: width 0.5s ease-out;
 }
 
@@ -378,7 +378,7 @@ button:disabled {
 
 /* The wedge dial. Two background layers:
    1. a small dark dot in the middle,
-   2. a cone-shaped gradient: green for --turn degrees, dark for the rest. */
+   2. a cone-shaped gradient: purple for --turn degrees, dark for the rest. */
 .dial {
     width: 128px;
     aspect-ratio: 1;
@@ -388,7 +388,7 @@ button:disabled {
         radial-gradient(circle, var(--panel) 0 15%, transparent 16%),
         conic-gradient(
             from calc(var(--turn) / -2), /* centers the wedge at the top */
-            var(--venom) 0deg var(--turn),
+            var(--accent) 0deg var(--turn),
             var(--line) var(--turn) 360deg
         );
     transition: --turn 0.9s ease-out; /* games.js sets --turn; this sweeps it open */
@@ -418,12 +418,12 @@ button:disabled {
     margin-top: auto; /* pushes the link to the bottom of every tile */
     padding-top: 16px;
     font-weight: 600;
-    color: var(--venom);
+    color: var(--accent);
     text-underline-offset: 4px;
 }
 
 .game-link:hover {
-    color: var(--venom-bright);
+    color: var(--accent-bright);
 }
 
 /* ---------- CONFETTI ---------- */

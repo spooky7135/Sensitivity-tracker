@@ -93,7 +93,7 @@ async function loadGames() {
 loadGames();
 
 // ---------- CONFETTI ----------
-const CONFETTI_COLORS = ["#3dff7c", "#7dffa8", "#e6f5ec", "#1fae55"];
+const CONFETTI_COLORS = ["#b57bff", "#d0a8ff", "#efe9f8", "#7a3fd6"];
 const CONFETTI_COUNT = 45;
 
 // True if the person turned animations off in their system settings.
