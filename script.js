@@ -6,21 +6,8 @@
 // Filled from the Supabase "games" table by loadGames() below.
 let games = [];
 
-// ---------- MATH (pure functions: inputs in, number out, no page access) ----------
-function cmPer360(sens, yaw, dpi) {
-    return (360 / (sens * yaw * dpi)) * 2.54;
-}
-
-function convertSens(sens, fromYaw, toYaw) {
-    return (sens * fromYaw) / toYaw;
-}
-
-// The ruler shows 0 to 80 cm. Returns how full it should be, capped at 100.
-const RULER_MAX_CM = 80;
-
-function rulerPercent(cm) {
-    return Math.min((cm / RULER_MAX_CM) * 100, 100);
-}
+// The maths (cmPer360, convertSens, rulerPercent and the Siege functions)
+// lives in sens-math.js, which index.html also loads before this file.
 
 // ---------- PAGE ELEMENTS ----------
 const fromGameSelect = document.getElementById("from-game");
