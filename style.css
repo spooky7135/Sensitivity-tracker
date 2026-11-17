@@ -29,7 +29,7 @@
 /* ---------- PAGE ---------- */
 body {
     margin: 0;
-    padding: 24px 20px 64px;
+    padding: 16px 20px 48px;
     min-height: 100vh;
     font-family: var(--body);
     color: var(--text);
@@ -51,8 +51,8 @@ body {
     align-items: baseline;
     gap: 8px 24px;
     max-width: 960px;
-    margin: 0 auto clamp(24px, 5vh, 48px);
-    padding-bottom: 16px;
+    margin: 0 auto clamp(16px, 3vh, 32px);
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--line);
 }
 
@@ -63,7 +63,7 @@ body {
 
 .brand {
     font-family: var(--display);
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--text);
     text-decoration: none;
@@ -106,18 +106,18 @@ a:focus-visible {
 
 /* ---------- HEADLINE ---------- */
 h1 {
-    margin: 0 0 12px;
+    margin: 0 0 6px;
     font-family: var(--display);
     font-weight: 700;
     /* clamp(min, preferred, max): grows with the screen, within limits */
-    font-size: clamp(2rem, 6vw, 2.75rem);
-    line-height: 1;
+    font-size: clamp(1.625rem, 5vw, 2rem);
+    line-height: 1.05;
     text-wrap: balance;
 }
 
 .intro {
-    margin: 0 0 28px;
-    font-size: 1.125rem;
+    margin: 0 0 20px;
+    font-size: 1rem;
     color: var(--muted);
 }
 
@@ -127,15 +127,15 @@ h1 {
 .fields {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 14px 12px; /* row gap, column gap */
+    gap: 12px 12px; /* row gap, column gap */
 }
 
 .game-row {
-    margin-bottom: 18px;
+    margin-bottom: 12px;
 }
 
 .fields {
-    margin-bottom: 22px;
+    margin-bottom: 18px;
 }
 
 /* 480px and wider: games with Swap between them, then two inputs. */
@@ -153,8 +153,8 @@ h1 {
 
 label {
     display: block;
-    margin-bottom: 6px;
-    font-size: 0.9375rem;
+    margin-bottom: 4px;
+    font-size: 0.875rem;
     font-weight: 500;
     color: var(--muted);
 }
@@ -162,9 +162,9 @@ label {
 input,
 select {
     width: 100%;
-    padding: 12px 14px;
+    padding: 9px 12px;
     font-family: var(--body);
-    font-size: 1.0625rem; /* 17px: also stops iPhones zooming on tap */
+    font-size: 1rem; /* 16px: the smallest size that stops iPhones zooming on tap */
     color: var(--text);
     background: var(--panel);
     border: 1px solid var(--line);
@@ -248,9 +248,9 @@ select:focus-visible {
 /* ---------- SWAP AND COPY BUTTONS ---------- */
 /* Outlined and quiet, so the converted number stays the main thing. */
 .small-button {
-    padding: 12px 16px;
+    padding: 9px 14px; /* same height as the inputs beside it */
     font-family: var(--body);
-    font-size: 1.0625rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--accent);
     background: transparent;
@@ -284,8 +284,8 @@ button:disabled {
 
 /* ---------- RESULT ---------- */
 #result {
-    margin-top: 12px;
-    padding-top: 24px;
+    margin-top: 8px;
+    padding-top: 16px;
     border-top: 1px solid var(--line);
 }
 
@@ -302,15 +302,15 @@ button:disabled {
     align-items: center;
     flex-wrap: wrap; /* Copy drops below the number if space runs out */
     gap: 8px 20px;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
 }
 
-/* The answer: the biggest thing on the page. */
+/* The answer: still the biggest thing on the page. */
 .result-value {
     margin: 0;
     font-family: var(--display);
     font-weight: 700;
-    font-size: clamp(4rem, 18vw, 6.5rem);
+    font-size: clamp(3rem, 13vw, 4.5rem);
     line-height: 1;
     color: var(--accent);
     font-variant-numeric: tabular-nums; /* digits all the same width */
@@ -428,7 +428,7 @@ code {
 
 /* ---------- RULER ---------- */
 .ruler {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
 }
 
 .ruler-track {
