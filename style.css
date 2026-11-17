@@ -24,7 +24,7 @@
 /* ---------- PAGE ---------- */
 body {
     margin: 0;
-    padding: clamp(24px, 8vh, 96px) 20px 48px;
+    padding: 24px 20px 64px;
     min-height: 100vh;
     font-family: var(--body);
     color: var(--text);
@@ -36,6 +36,60 @@ body {
         transparent 55%
     );
     background-attachment: fixed;
+}
+
+/* ---------- SITE HEADER (both pages) ---------- */
+.site-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px 24px;
+    max-width: 960px;
+    margin: 0 auto clamp(32px, 7vh, 72px);
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+}
+
+/* On the converter page the header matches the narrow column. */
+.site-header.narrow {
+    max-width: 560px;
+}
+
+.brand {
+    font-family: var(--display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.site-header nav {
+    display: flex;
+    gap: 20px;
+}
+
+.site-header nav a {
+    padding-bottom: 2px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+}
+
+.site-header nav a:hover {
+    color: var(--text);
+}
+
+/* aria-current="page" marks the link for the page you are on. */
+.site-header nav a[aria-current="page"] {
+    color: var(--venom);
+    border-bottom-color: var(--venom);
+}
+
+a:focus-visible {
+    outline: 2px solid var(--venom);
+    outline-offset: 3px;
 }
 
 /* The column: centered on the page, text left aligned. */
@@ -273,6 +327,105 @@ button:disabled {
     font-variant-numeric: tabular-nums;
 }
 
+/* ---------- GAMES PAGE ---------- */
+.showcase {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.showcase .intro {
+    margin-bottom: 12px;
+}
+
+.legend {
+    max-width: 60ch; /* ch = width of one character: keeps lines readable */
+    margin: 0 0 28px;
+    color: var(--muted);
+}
+
+.status {
+    margin: 0 0 16px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+/* As many columns as fit, each at least 260px wide. No media query needed. */
+.game-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.game {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+}
+
+/* Lets the browser animate --turn as an angle (see .dial). */
+@property --turn {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+}
+
+/* The wedge dial. Two background layers:
+   1. a small dark dot in the middle,
+   2. a cone-shaped gradient: green for --turn degrees, dark for the rest. */
+.dial {
+    width: 128px;
+    aspect-ratio: 1;
+    margin-bottom: 20px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, var(--panel) 0 15%, transparent 16%),
+        conic-gradient(
+            from calc(var(--turn) / -2), /* centers the wedge at the top */
+            var(--venom) 0deg var(--turn),
+            var(--line) var(--turn) 360deg
+        );
+    transition: --turn 0.9s ease-out; /* games.js sets --turn; this sweeps it open */
+}
+
+.game-name {
+    margin: 0 0 8px;
+    font-family: var(--display);
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.game-turn,
+.game-yaw,
+.game-notes {
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.game-turn {
+    color: var(--text);
+}
+
+.game-link {
+    margin-top: auto; /* pushes the link to the bottom of every tile */
+    padding-top: 16px;
+    font-weight: 600;
+    color: var(--venom);
+    text-underline-offset: 4px;
+}
+
+.game-link:hover {
+    color: var(--venom-bright);
+}
+
 /* ---------- CONFETTI ---------- */
 /* script.js creates these, animates them, then removes them. */
 .confetti {
@@ -287,6 +440,7 @@ button:disabled {
 /* Respect people who turn animations off in their system settings. */
 @media (prefers-reduced-motion: reduce) {
     .ruler-fill,
+    .dial,
     .convert-button,
     .small-button {
         transition: none;

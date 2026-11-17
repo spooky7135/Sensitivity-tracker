@@ -1,11 +1,5 @@
-// ---------- SUPABASE ----------
-// Both values are PUBLIC by design. Row Level Security protects the data.
-// NEVER put a secret / service_role key in this file.
-const SUPABASE_URL = "https://srfalmsrlmfgmhnfimow.supabase.co";
-const SUPABASE_KEY = "sb_publishable__EDQX1-o-38PIHakzfTg7g_UMCSnBXi";
-
-// The CDN script created a global called "supabase", so our client gets another name.
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// The Supabase client "db" is created in supabase-client.js,
+// which index.html loads before this file.
 
 // ---------- DATA ----------
 // yaw = degrees the camera turns per mouse count at sensitivity 1.
@@ -77,6 +71,19 @@ async function loadGames() {
     fillGameSelect(toGameSelect);
     if (games.length > 1) {
         toGameSelect.value = 1; // start with a different game selected
+    }
+
+    // The games page links here as index.html?from=Valorant.
+    // If the address has a "from" game we know, select it.
+    const wanted = new URLSearchParams(window.location.search).get("from");
+    const wantedIndex = games.findIndex(function (game) {
+        return game.name === wanted;
+    });
+    if (wantedIndex !== -1) {
+        fromGameSelect.value = wantedIndex;
+        if (games.length > 1) {
+            toGameSelect.value = wantedIndex === 0 ? 1 : 0; // keep "to" different
+        }
     }
     errorMessage.textContent = "";
     calculateButton.disabled = false;

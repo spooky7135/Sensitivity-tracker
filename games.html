@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Supported games | Sensitivity Converter</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="site-header">
+        <a class="brand" href="index.html">Sensitivity Converter</a>
+        <nav>
+            <a href="index.html">Converter</a>
+            <a href="games.html" aria-current="page">Supported games</a>
+        </nav>
+    </header>
+
+    <main class="showcase">
+
+        <h1>Supported games</h1>
+        <p class="intro">Every game here converts to every other one.</p>
+
+        <p class="legend">
+            The green wedge shows how far each game turns for the same mouse
+            movement at sensitivity 1. A wider wedge means that game needs a
+            smaller sensitivity number.
+        </p>
+
+        <p id="status-message" class="status" aria-live="polite">Loading games...</p>
+
+        <!-- games.js adds one <li> per game here -->
+        <ul id="game-list" class="game-list"></ul>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="games.js"></script>
+
+</body>
+</html>
