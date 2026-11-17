@@ -21,17 +21,21 @@
         <h1>Convert your sensitivity between games</h1>
         <p class="intro">Same hand movement, same turn, in every game you play.</p>
 
-        <div class="fields">
+        <div class="game-row">
             <div class="input-group">
                 <label for="from-game">Convert from</label>
                 <select id="from-game"></select>
             </div>
 
+            <button type="button" id="swap-button" class="small-button" disabled>Swap</button>
+
             <div class="input-group">
                 <label for="to-game">Convert to</label>
                 <select id="to-game"></select>
             </div>
+        </div>
 
+        <div class="fields">
             <div class="input-group">
                 <label for="dpi">Mouse DPI</label>
                 <input
@@ -52,7 +56,7 @@
             </div>
         </div>
 
-        <button id="calculate-button">
+        <button type="button" id="calculate-button" class="convert-button">
             Convert
         </button>
 
@@ -60,7 +64,10 @@
 
         <section id="result" aria-live="polite">
             <p class="result-label" id="result-label">Converted sensitivity</p>
-            <p class="result-value" id="converted-result">---</p>
+            <div class="result-row">
+                <p class="result-value" id="converted-result">---</p>
+                <button type="button" id="copy-button" class="small-button" disabled>Copy</button>
+            </div>
 
             <!-- The ruler: how far the mouse travels for one full turn -->
             <div class="ruler" aria-hidden="true">

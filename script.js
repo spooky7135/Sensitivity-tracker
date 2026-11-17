@@ -40,6 +40,8 @@ const convertedResult = document.getElementById("converted-result");
 const errorMessage = document.getElementById("error-message");
 const resultLabel = document.getElementById("result-label");
 const rulerFill = document.getElementById("ruler-fill");
+const swapButton = document.getElementById("swap-button");
+const copyButton = document.getElementById("copy-button");
 
 // ---------- FILL THE DROPDOWNS ----------
 // For each game, create an <option> whose value is its index in games.
@@ -78,6 +80,7 @@ async function loadGames() {
     }
     errorMessage.textContent = "";
     calculateButton.disabled = false;
+    swapButton.disabled = false;
 }
 
 loadGames();
@@ -89,15 +92,11 @@ const CONFETTI_COUNT = 45;
 // True if the person turned animations off in their system settings.
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-function burstConfetti(originElement) {
+// startX and startY are screen coordinates: where the burst begins.
+function burstConfetti(startX, startY) {
     if (reduceMotion.matches) {
         return;
     }
-
-    // Where is the button on screen? Start every piece at its center.
-    const box = originElement.getBoundingClientRect();
-    const startX = box.left + box.width / 2;
-    const startY = box.top + box.height / 2;
 
     for (let i = 0; i < CONFETTI_COUNT; i++) {
         const piece = document.createElement("span");
@@ -131,32 +130,119 @@ function burstConfetti(originElement) {
     }
 }
 
-// ---------- BUTTON CLICK ----------
-calculateButton.addEventListener("click", function () {
+// ---------- RESULTS ----------
+// The last converted value as text, or null when there is nothing to show.
+// The swap and copy buttons both read it.
+let lastConverted = null;
+
+// Reads the form and updates the result area.
+// Returns true if a conversion was shown, false if the inputs aren't usable yet.
+function updateResults() {
+    if (games.length === 0) {
+        return false; // games haven't loaded
+    }
+
     const dpi = Number(dpiInput.value);
     const sens = Number(sensitivityInput.value);
 
     // Number("") is 0 and Number("abc") is NaN, so reject both.
     if (!(dpi > 0) || !(sens > 0)) {
-        errorMessage.textContent = "Please enter a DPI and sensitivity greater than 0.";
+        lastConverted = null;
         edpiResult.textContent = "---";
         cmResult.textContent = "---";
         convertedResult.textContent = "---";
         resultLabel.textContent = "Converted sensitivity";
         rulerFill.style.width = "0%";
-        return;
+        copyButton.disabled = true;
+        return false;
     }
-    errorMessage.textContent = "";
 
     const fromGame = games[fromGameSelect.value];
     const toGame = games[toGameSelect.value];
-
     const cm = cmPer360(sens, fromGame.yaw, dpi);
+
+    lastConverted = convertSens(sens, fromGame.yaw, toGame.yaw).toFixed(4);
 
     edpiResult.textContent = (dpi * sens).toFixed(2);
     cmResult.textContent = cm.toFixed(2) + " cm";
-    convertedResult.textContent = convertSens(sens, fromGame.yaw, toGame.yaw).toFixed(4);
+    convertedResult.textContent = lastConverted;
     resultLabel.textContent = toGame.name + " sensitivity";
     rulerFill.style.width = rulerPercent(cm) + "%"; // CSS animates the change
-    burstConfetti(calculateButton);
+    copyButton.disabled = false;
+    return true;
+}
+
+// ---------- LIVE RESULTS ----------
+// Runs on every keystroke and dropdown change. Quiet: no error text, no confetti.
+function liveUpdate() {
+    if (games.length === 0) {
+        return;
+    }
+    errorMessage.textContent = "";
+    updateResults();
+}
+
+dpiInput.addEventListener("input", liveUpdate);
+sensitivityInput.addEventListener("input", liveUpdate);
+fromGameSelect.addEventListener("change", liveUpdate);
+toGameSelect.addEventListener("change", liveUpdate);
+
+// ---------- CONVERT BUTTON ----------
+// Same calculation, plus the error message or the confetti.
+// "event" describes the click, including where the pointer was.
+calculateButton.addEventListener("click", function (event) {
+    if (updateResults()) {
+        errorMessage.textContent = "";
+
+        // Start at the mouse pointer.
+        let x = event.clientX;
+        let y = event.clientY;
+
+        // Pressing Enter or Space on the button has no pointer position
+        // (detail is 0), so use the middle of the button instead.
+        if (event.detail === 0) {
+            const box = calculateButton.getBoundingClientRect();
+            x = box.left + box.width / 2;
+            y = box.top + box.height / 2;
+        }
+
+        burstConfetti(x, y);
+    } else {
+        errorMessage.textContent = "Please enter a DPI and sensitivity greater than 0.";
+    }
+});
+
+// ---------- SWAP BUTTON ----------
+// Flips the two games. If there is a result, it becomes the new input,
+// so swapping converts back the other way.
+swapButton.addEventListener("click", function () {
+    const oldFrom = fromGameSelect.value;
+    fromGameSelect.value = toGameSelect.value;
+    toGameSelect.value = oldFrom;
+
+    if (lastConverted !== null) {
+        sensitivityInput.value = lastConverted;
+    }
+    liveUpdate();
+});
+
+// ---------- COPY BUTTON ----------
+copyButton.addEventListener("click", async function () {
+    if (lastConverted === null) {
+        return;
+    }
+
+    // The clipboard can refuse (old browser, blocked permission), so try/catch.
+    try {
+        await navigator.clipboard.writeText(lastConverted);
+        copyButton.textContent = "Copied";
+    } catch (err) {
+        console.error(err);
+        copyButton.textContent = "Copy failed";
+    }
+
+    // Put the normal label back after 1.5 seconds.
+    setTimeout(function () {
+        copyButton.textContent = "Copy";
+    }, 1500);
 });
