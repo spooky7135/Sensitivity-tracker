@@ -52,6 +52,25 @@ const hipSetting = document.getElementById("hip-setting");
 const xFactorRow = document.getElementById("xfactor-row");
 const xFactorSetting = document.getElementById("xfactor-setting");
 
+// ---------- GAME SEARCH BOXES ----------
+// Typeable pickers on top of the two hidden <select> elements (game-search.js).
+function gameNames() {
+    return games.map(function (game) { return game.name; });
+}
+
+const fromCombobox = createGameCombobox(
+    fromGameSelect,
+    document.getElementById("from-game-input"),
+    document.getElementById("from-game-list"),
+    gameNames
+);
+const toCombobox = createGameCombobox(
+    toGameSelect,
+    document.getElementById("to-game-input"),
+    document.getElementById("to-game-list"),
+    gameNames
+);
+
 // ---------- FILL THE DROPDOWNS ----------
 // For each game, create an <option> whose value is its index in games.
 function fillGameSelect(select) {
@@ -196,6 +215,10 @@ function updateResults() {
     if (games.length === 0) {
         return false; // games haven't loaded
     }
+
+    // Show the chosen games' names in the search boxes (needed after Swap).
+    fromCombobox.sync();
+    toCombobox.sync();
 
     const fromGame = games[fromGameSelect.value];
     const toGame = games[toGameSelect.value];

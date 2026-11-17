@@ -30,16 +30,46 @@
         <p class="intro">Same hand movement, same turn, in every game you play.</p>
 
         <div class="game-row">
+            <!-- Each game picker: a text box you can type in, a list that
+                 filters as you type, and a hidden <select> that holds the choice. -->
             <div class="input-group">
-                <label for="from-game">Convert from</label>
-                <select id="from-game"></select>
+                <label for="from-game-input">Convert from</label>
+                <div class="combobox">
+                    <input
+                        type="text"
+                        id="from-game-input"
+                        role="combobox"
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        aria-controls="from-game-list"
+                        autocomplete="off"
+                        spellcheck="false"
+                        placeholder="Type a game"
+                    >
+                    <ul id="from-game-list" class="combobox-list" role="listbox" aria-label="Games" hidden></ul>
+                    <select id="from-game" hidden tabindex="-1" aria-hidden="true"></select>
+                </div>
             </div>
 
             <button type="button" id="swap-button" class="small-button" disabled>Swap</button>
 
             <div class="input-group">
-                <label for="to-game">Convert to</label>
-                <select id="to-game"></select>
+                <label for="to-game-input">Convert to</label>
+                <div class="combobox">
+                    <input
+                        type="text"
+                        id="to-game-input"
+                        role="combobox"
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        aria-controls="to-game-list"
+                        autocomplete="off"
+                        spellcheck="false"
+                        placeholder="Type a game"
+                    >
+                    <ul id="to-game-list" class="combobox-list" role="listbox" aria-label="Games" hidden></ul>
+                    <select id="to-game" hidden tabindex="-1" aria-hidden="true"></select>
+                </div>
             </div>
         </div>
 
@@ -172,6 +202,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
     <script src="supabase-client.js"></script>
     <script src="sens-math.js"></script>
+    <script src="game-search.js"></script>
     <script src="script.js"></script>
 
 </body>

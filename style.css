@@ -187,6 +187,64 @@ select:focus-visible {
     box-shadow: 0 0 0 1px var(--accent);
 }
 
+/* ---------- GAME SEARCH BOX ---------- */
+.combobox {
+    position: relative; /* the list below is placed relative to this box */
+}
+
+/* A small arrow so the box still reads as a dropdown. */
+.combobox input {
+    padding-right: 36px;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+                      linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 20px) 50%, calc(100% - 15px) 50%;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+}
+
+.combobox-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 20;             /* above the rest of the form */
+    max-height: 280px;
+    overflow-y: auto;        /* scroll inside the list, not the page */
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+.combobox-list [role="option"] {
+    padding: 9px 14px;
+    cursor: pointer;
+}
+
+/* The row under the mouse, or picked with the arrow keys. */
+.combobox-list [role="option"]:hover,
+.combobox-list [role="option"].active {
+    background: rgba(181, 123, 255, 0.14);
+}
+
+/* The game that is currently chosen. */
+.combobox-list [aria-selected="true"] {
+    color: var(--accent);
+}
+
+.combobox-list strong {
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.combobox-empty {
+    padding: 9px 14px;
+    color: var(--muted);
+}
+
 /* ---------- CONVERT BUTTON ---------- */
 .convert-button {
     width: 100%;
