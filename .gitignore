@@ -5,6 +5,9 @@ node_modules/
 .env
 .env.*
 
+# Claude Code local settings
+.claude/
+
 # OS junk
 .DS_Store
 Thumbs.db

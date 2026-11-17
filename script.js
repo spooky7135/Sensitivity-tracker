@@ -21,6 +21,13 @@ function convertSens(sens, fromYaw, toYaw) {
     return (sens * fromYaw) / toYaw;
 }
 
+// The ruler shows 0 to 80 cm. Returns how full it should be, capped at 100.
+const RULER_MAX_CM = 80;
+
+function rulerPercent(cm) {
+    return Math.min((cm / RULER_MAX_CM) * 100, 100);
+}
+
 // ---------- PAGE ELEMENTS ----------
 const fromGameSelect = document.getElementById("from-game");
 const toGameSelect = document.getElementById("to-game");
@@ -31,6 +38,8 @@ const edpiResult = document.getElementById("edpi-result");
 const cmResult = document.getElementById("cm-result");
 const convertedResult = document.getElementById("converted-result");
 const errorMessage = document.getElementById("error-message");
+const resultLabel = document.getElementById("result-label");
+const rulerFill = document.getElementById("ruler-fill");
 
 // ---------- FILL THE DROPDOWNS ----------
 // For each game, create an <option> whose value is its index in games.
@@ -73,6 +82,55 @@ async function loadGames() {
 
 loadGames();
 
+// ---------- CONFETTI ----------
+const CONFETTI_COLORS = ["#3dff7c", "#7dffa8", "#e6f5ec", "#1fae55"];
+const CONFETTI_COUNT = 45;
+
+// True if the person turned animations off in their system settings.
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function burstConfetti(originElement) {
+    if (reduceMotion.matches) {
+        return;
+    }
+
+    // Where is the button on screen? Start every piece at its center.
+    const box = originElement.getBoundingClientRect();
+    const startX = box.left + box.width / 2;
+    const startY = box.top + box.height / 2;
+
+    for (let i = 0; i < CONFETTI_COUNT; i++) {
+        const piece = document.createElement("span");
+        piece.className = "confetti";
+        piece.style.left = startX + "px";
+        piece.style.top = startY + "px";
+        piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+        document.body.appendChild(piece);
+
+        // Random direction (angle) and random distance for each piece.
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = 80 + Math.random() * 160;
+        const x = Math.cos(angle) * distance;
+        const y = Math.sin(angle) * distance;
+        const spin = Math.random() * 720 - 360;
+
+        // Keyframes: shoot outward, then drift down and fade (the firework look).
+        const animation = piece.animate(
+            [
+                { transform: "translate(0, 0) rotate(0deg)", opacity: 1 },
+                { transform: `translate(${x}px, ${y}px) rotate(${spin}deg)`, opacity: 1, offset: 0.6 },
+                { transform: `translate(${x}px, ${y + 70}px) rotate(${spin}deg)`, opacity: 0 }
+            ],
+            { duration: 900 + Math.random() * 500, easing: "ease-out" }
+        );
+
+        // Clean up: remove the piece from the page when its animation ends.
+        animation.onfinish = function () {
+            piece.remove();
+        };
+    }
+}
+
 // ---------- BUTTON CLICK ----------
 calculateButton.addEventListener("click", function () {
     const dpi = Number(dpiInput.value);
@@ -84,6 +142,8 @@ calculateButton.addEventListener("click", function () {
         edpiResult.textContent = "---";
         cmResult.textContent = "---";
         convertedResult.textContent = "---";
+        resultLabel.textContent = "Converted sensitivity";
+        rulerFill.style.width = "0%";
         return;
     }
     errorMessage.textContent = "";
@@ -91,7 +151,12 @@ calculateButton.addEventListener("click", function () {
     const fromGame = games[fromGameSelect.value];
     const toGame = games[toGameSelect.value];
 
+    const cm = cmPer360(sens, fromGame.yaw, dpi);
+
     edpiResult.textContent = (dpi * sens).toFixed(2);
-    cmResult.textContent = cmPer360(sens, fromGame.yaw, dpi).toFixed(2) + " cm";
+    cmResult.textContent = cm.toFixed(2) + " cm";
     convertedResult.textContent = convertSens(sens, fromGame.yaw, toGame.yaw).toFixed(4);
+    resultLabel.textContent = toGame.name + " sensitivity";
+    rulerFill.style.width = rulerPercent(cm) + "%"; // CSS animates the change
+    burstConfetti(calculateButton);
 });

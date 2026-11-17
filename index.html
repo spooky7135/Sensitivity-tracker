@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Sensitivity Calculator</title>
+    <title>Sensitivity Converter</title>
+
+    <!-- Fonts: Barlow (body) and Barlow Condensed (headline and numbers) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,48 +18,67 @@
 
     <main class="calculator">
 
-        <h1>Game Sensitivity Converter</h1>
+        <h1>Convert your sensitivity between games</h1>
+        <p class="intro">Same hand movement, same turn, in every game you play.</p>
 
-        <div class="input-group">
-            <label for="from-game">Convert from</label>
-            <select id="from-game"></select>
-        </div>
+        <div class="fields">
+            <div class="input-group">
+                <label for="from-game">Convert from</label>
+                <select id="from-game"></select>
+            </div>
 
-        <div class="input-group">
-            <label for="to-game">Convert to</label>
-            <select id="to-game"></select>
-        </div>
+            <div class="input-group">
+                <label for="to-game">Convert to</label>
+                <select id="to-game"></select>
+            </div>
 
-        <div class="input-group">
-            <label for="dpi">Mouse DPI</label>
-            <input
-                type="number"
-                id="dpi"
-                placeholder="800"
-            >
-        </div>
+            <div class="input-group">
+                <label for="dpi">Mouse DPI</label>
+                <input
+                    type="number"
+                    id="dpi"
+                    placeholder="800"
+                >
+            </div>
 
-        <div class="input-group">
-            <label for="sensitivity">Your Sensitivity (in the "from" game)</label>
-            <input
-                type="number"
-                id="sensitivity"
-                placeholder="0.35"
-                step="any"
-            >
+            <div class="input-group">
+                <label for="sensitivity">Current sensitivity</label>
+                <input
+                    type="number"
+                    id="sensitivity"
+                    placeholder="0.35"
+                    step="any"
+                >
+            </div>
         </div>
 
         <button id="calculate-button">
-            Calculate
+            Convert
         </button>
 
         <p id="error-message" class="error"></p>
 
-        <div id="result">
-            <p>eDPI: <span id="edpi-result">---</span></p>
-            <p>Distance per 360°: <span id="cm-result">---</span></p>
-            <p>Converted sensitivity: <strong id="converted-result">---</strong></p>
-        </div>
+        <section id="result" aria-live="polite">
+            <p class="result-label" id="result-label">Converted sensitivity</p>
+            <p class="result-value" id="converted-result">---</p>
+
+            <!-- The ruler: how far the mouse travels for one full turn -->
+            <div class="ruler" aria-hidden="true">
+                <div class="ruler-track">
+                    <div class="ruler-fill" id="ruler-fill"></div>
+                </div>
+                <div class="ruler-scale">
+                    <span>0</span>
+                    <span>20</span>
+                    <span>40</span>
+                    <span>60</span>
+                    <span>80 cm</span>
+                </div>
+            </div>
+
+            <p class="result-note">Mouse travel for one full turn: <span id="cm-result">---</span></p>
+            <p class="result-note">eDPI: <span id="edpi-result">---</span></p>
+        </section>
 
     </main>
 
