@@ -8,6 +8,10 @@ node_modules/
 # Claude Code local settings
 .claude/
 
+# Planning notes and working files: kept on this computer only
+docs/
+.superpowers/
+
 # OS junk
 .DS_Store
 Thumbs.db
