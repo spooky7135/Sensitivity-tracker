@@ -19,6 +19,98 @@ function rulerPercent(cm) {
     return Math.min((cm / RULER_MAX_CM) * 100, 100);
 }
 
+// ---------- RAINBOW SIX SIEGE ----------
+// Siege differs from the other games in three ways:
+//   1. Its sliders only take whole numbers from 1 to 100.
+//   2. A hidden value in the settings file (MouseSensitivityMultiplierUnit,
+//      normally 0.02) scales hip-fire.
+//   3. Every scope has its own slider, and one more hidden value
+//      (XFactorAiming) scales all of them.
+
+const SIEGE_DEFAULT_MULTIPLIER = 0.02;
+const SIEGE_SLIDER_MIN = 1;
+const SIEGE_SLIDER_MAX = 100;
+
+// An error smaller than this many percent is shown as an exact match.
+const EXACT_TOLERANCE_PERCENT = 0.05;
+
+// Rounds to a whole number and keeps it inside the slider's range.
+function toSiegeSlider(value) {
+    const rounded = Math.round(value);
+    return Math.min(Math.max(rounded, SIEGE_SLIDER_MIN), SIEGE_SLIDER_MAX);
+}
+
+// Converting FROM Siege: the slider and the multiplier combine into one
+// number that works like any other game's sensitivity.
+function siegeEffectiveSens(slider, multiplier) {
+    return (slider * multiplier) / SIEGE_DEFAULT_MULTIPLIER;
+}
+
+// Converting TO Siege. "needed" is the exact slider value that would match,
+// for example 3.8399. The slider can only be 4, so:
+//   slider       the closest whole number
+//   multiplier   the settings file value that makes slider 4 behave like 3.8399
+//   errorPercent how far off the slider is WITHOUT the multiplier
+//                (positive = faster than an exact match)
+//   exact        true when the slider alone is already right
+function siegeHipFromNeeded(needed) {
+    const slider = toSiegeSlider(needed);
+    const errorPercent = (slider / needed - 1) * 100;
+
+    return {
+        slider: slider,
+        multiplier: (SIEGE_DEFAULT_MULTIPLIER * needed) / slider,
+        errorPercent: errorPercent,
+        exact: Math.abs(errorPercent) < EXACT_TOLERANCE_PERCENT
+    };
+}
+
+// Siege's FOV setting goes from 60 to 90.
+function isValidSiegeFov(fov) {
+    return fov >= 60 && fov <= 90;
+}
+
+function degreesToRadians(degrees) {
+    return (degrees * Math.PI) / 180;
+}
+
+// Ubisoft's formula: how much a scope slows turning compared with hip-fire.
+// fovMultiplier comes from Ubisoft's table (0.42 for the 2.5x scope).
+// Math.tan works in radians, so the degrees are converted first.
+function fovAdjustment(fovMultiplier, fov) {
+    return (
+        Math.tan(degreesToRadians((fovMultiplier * fov) / 2)) /
+        Math.tan(degreesToRadians(fov / 2))
+    );
+}
+
+// One XFactorAiming value has to serve every scope. The strongest scope
+// needs the highest slider, so we pick the value that puts it exactly on 100.
+// Every other scope then lands below 100.
+function siegeXFactor(fovMultipliers, fov) {
+    const adjustments = fovMultipliers.map(function (fovMultiplier) {
+        return fovAdjustment(fovMultiplier, fov);
+    });
+    const smallest = Math.min.apply(null, adjustments);
+    return 1 / (SIEGE_SLIDER_MAX * smallest);
+}
+
+// The slider for one scope so that scoped aiming takes the same mouse travel
+// as hip-fire. That happens when slider x xFactor x adjustment = 1.
+//   errorPercent  how far off the whole-number slider is
+//                 (positive = faster than an exact match)
+function siegeScopeSlider(fovMultiplier, fov, xFactor) {
+    const adjustment = fovAdjustment(fovMultiplier, fov);
+    const slider = toSiegeSlider(1 / (xFactor * adjustment));
+    const errorPercent = (slider * xFactor * adjustment - 1) * 100;
+
+    return {
+        slider: slider,
+        errorPercent: errorPercent,
+        exact: Math.abs(errorPercent) < EXACT_TOLERANCE_PERCENT
+    };
+}
+
 // ---------- EXPORTS FOR THE TESTS ----------
 // In the browser "module" does not exist, so this block is skipped and the
 // functions above are simply global. In Node (the tests) it hands them over.
@@ -26,6 +118,13 @@ if (typeof module !== "undefined") {
     module.exports = {
         cmPer360,
         convertSens,
-        rulerPercent
+        rulerPercent,
+        SIEGE_DEFAULT_MULTIPLIER,
+        siegeEffectiveSens,
+        siegeHipFromNeeded,
+        isValidSiegeFov,
+        fovAdjustment,
+        siegeXFactor,
+        siegeScopeSlider
     };
 }
