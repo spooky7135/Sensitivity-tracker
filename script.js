@@ -14,6 +14,11 @@ function isSiege(game) {
     return game.calc_type === "siege";
 }
 
+// Minecraft's slider is a percentage on a curve, handled in sens-math.js.
+function isMinecraft(game) {
+    return game.calc_type === "minecraft";
+}
+
 // The maths (cmPer360, convertSens, rulerPercent and the Siege functions)
 // lives in sens-math.js, which index.html also loads before this file.
 
@@ -196,10 +201,18 @@ function updateResults() {
     const toGame = games[toGameSelect.value];
     const fromIsSiege = isSiege(fromGame);
     const toIsSiege = isSiege(toGame);
+    const fromIsMinecraft = isMinecraft(fromGame);
+    const toIsMinecraft = isMinecraft(toGame);
 
     // Siege's extra input appears only when converting FROM Siege.
     siegeFrom.hidden = !fromIsSiege;
-    sensitivityLabel.textContent = fromIsSiege ? "Current hip-fire slider" : "Current sensitivity";
+    if (fromIsSiege) {
+        sensitivityLabel.textContent = "Current hip-fire slider";
+    } else if (fromIsMinecraft) {
+        sensitivityLabel.textContent = "Current sensitivity (%)";
+    } else {
+        sensitivityLabel.textContent = "Current sensitivity";
+    }
 
     const dpi = Number(dpiInput.value);
     let sens = Number(sensitivityInput.value);
@@ -207,11 +220,22 @@ function updateResults() {
     // Number("") is 0 and Number("abc") is NaN, so reject both.
     let valid = dpi > 0 && sens > 0;
 
+    // degreesPerCount: how far the "from" game turns for one mouse count.
+    // Every game reduces to this one number, which makes the rest simple.
+    let degreesPerCount;
+
     if (fromIsSiege) {
         // Siege's real sensitivity is the slider combined with the multiplier.
         const multiplier = Number(siegeMultiplierInput.value);
         valid = valid && multiplier > 0;
         sens = siegeEffectiveSens(sens, multiplier);
+        degreesPerCount = sens * fromGame.yaw;
+    } else if (fromIsMinecraft) {
+        // Minecraft's percent goes through its curve instead of a fixed yaw.
+        valid = valid && sens <= 200;
+        degreesPerCount = minecraftYaw(sens);
+    } else {
+        degreesPerCount = sens * fromGame.yaw;
     }
 
     if (!valid) {
@@ -228,10 +252,23 @@ function updateResults() {
         return false;
     }
 
-    const cm = cmPer360(sens, fromGame.yaw, dpi);
-    const needed = convertSens(sens, fromGame.yaw, toGame.yaw);
+    // cmPer360(1, degreesPerCount, dpi): sensitivity 1 with the turn per count.
+    const cm = cmPer360(1, degreesPerCount, dpi);
 
-    if (toIsSiege) {
+    // For games with a fixed yaw: the sensitivity that turns the same amount.
+    const needed = degreesPerCount / toGame.yaw;
+
+    if (toIsMinecraft) {
+        // Minecraft's slider shows whole percents, so show the closest one and
+        // the exact options.txt value.
+        const mc = minecraftFromYaw(degreesPerCount);
+        lastConverted = String(mc.percent);
+        lastMultiplier = null;
+        const suggested = mc.exact && !mc.outOfRange ? "" : "Suggested ";
+        resultLabel.textContent = suggested + toGame.name + " sensitivity (%)";
+        hipNote.textContent = minecraftNote(mc);
+        hipNote.hidden = false;
+    } else if (toIsSiege) {
         // Siege only takes whole numbers, so show the closest slider and say
         // how to make it exact with the settings file.
         const hip = siegeHipFromNeeded(needed);
@@ -248,7 +285,8 @@ function updateResults() {
         hipNote.hidden = true;
     }
 
-    edpiResult.textContent = (dpi * sens).toFixed(2);
+    // eDPI is DPI x sensitivity. A Minecraft percent isn't that kind of number.
+    edpiResult.textContent = fromIsMinecraft ? "---" : (dpi * sens).toFixed(2);
     cmResult.textContent = cm.toFixed(2) + " cm";
     convertedResult.textContent = lastConverted;
     rulerFill.style.width = rulerPercent(cm) + "%"; // CSS animates the change

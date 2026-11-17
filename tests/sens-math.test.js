@@ -17,7 +17,10 @@ const {
     siegeHipNote,
     siegeScopeResultText,
     siegeScopeNote,
-    siegeSettingLine
+    siegeSettingLine,
+    minecraftYaw,
+    minecraftFromYaw,
+    minecraftNote
 } = require("../sens-math.js");
 
 // Passes when two numbers are within "tolerance" of each other.
@@ -181,5 +184,63 @@ test("settings file lines use the GameSettings.ini format", function () {
     assert.strictEqual(
         siegeSettingLine("XFactorAiming", siegeXFactor(M, 90)),
         "XFactorAiming=0.138155"
+    );
+});
+
+// ---------- MINECRAFT ----------
+// Minecraft's slider is a percentage on a curve, not a fixed yaw.
+
+test("minecraftYaw at 0%, 100% and 200%", function () {
+    near(minecraftYaw(0), 0.0096, 1e-12);
+    near(minecraftYaw(100), 0.15, 1e-12);
+    near(minecraftYaw(200), 0.6144, 1e-12);
+});
+
+test("minecraftFromYaw: 100% is exact", function () {
+    const r = minecraftFromYaw(0.15);
+    assert.strictEqual(r.percent, 100);
+    near(r.setting, 0.5, 1e-12);
+    assert.strictEqual(r.exact, true);
+    assert.strictEqual(r.outOfRange, false);
+});
+
+test("minecraftFromYaw: CS2 sens 1 gives 21%", function () {
+    const r = minecraftFromYaw(0.022);
+    assert.strictEqual(r.percent, 21);
+    near(r.setting, 0.106137, 1e-6);
+    assert.strictEqual(r.exact, false);
+});
+
+test("minecraftFromYaw rounds to a whole percent and reports the error", function () {
+    const r = minecraftFromYaw(minecraftYaw(87.3));
+    assert.strictEqual(r.percent, 87);
+    near(r.setting, 0.4365, 1e-9);
+    assert.ok(r.errorPercent < 0, "87% turns slower than 87.3%");
+    near(r.errorPercent, (minecraftYaw(87) / minecraftYaw(87.3) - 1) * 100, 1e-9);
+});
+
+test("minecraftFromYaw outside the slider range", function () {
+    const high = minecraftFromYaw(1.0);
+    assert.strictEqual(high.percent, 200);
+    assert.strictEqual(high.outOfRange, true);
+
+    const low = minecraftFromYaw(0.001);
+    assert.strictEqual(low.percent, 0);
+    assert.strictEqual(low.outOfRange, true);
+});
+
+test("minecraftNote wording", function () {
+    assert.strictEqual(minecraftNote(minecraftFromYaw(0.15)), "Exact match.");
+    assert.strictEqual(
+        minecraftNote(minecraftFromYaw(minecraftYaw(87.3))),
+        "0.6% slower than exact. For an exact match, set mouseSensitivity:0.436500 in options.txt."
+    );
+    assert.strictEqual(
+        minecraftNote(minecraftFromYaw(1.0)),
+        "Minecraft's slider can't go that fast. 200% is the closest."
+    );
+    assert.strictEqual(
+        minecraftNote(minecraftFromYaw(0.001)),
+        "Minecraft's slider can't go that slow. 0% is the closest."
     );
 });

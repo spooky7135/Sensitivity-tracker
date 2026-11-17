@@ -36,7 +36,9 @@ function buildGameTile(game) {
     tile.appendChild(dial);
 
     tile.appendChild(makeElement("h2", "game-name", game.name));
-    tile.appendChild(makeElement("p", "game-turn", "Turns " + degreesText + " per 1,000 mouse counts"));
+    // Minecraft's slider is a percentage on a curve; its stored yaw is the value at 100%.
+    const atWhat = game.calc_type === "minecraft" ? " at 100%" : "";
+    tile.appendChild(makeElement("p", "game-turn", "Turns " + degreesText + " per 1,000 mouse counts" + atWhat));
     tile.appendChild(makeElement("p", "game-yaw", "Yaw " + game.yaw));
 
     if (game.notes) {
@@ -60,7 +62,7 @@ function buildGameTile(game) {
 async function loadShowcase() {
     const { data, error } = await db
         .from("games")
-        .select("name, yaw, notes")
+        .select("name, yaw, notes, calc_type")
         .order("name");
 
     // RLS blocking a read gives an EMPTY list, not an error, so check both.

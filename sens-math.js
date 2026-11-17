@@ -151,6 +151,58 @@ function siegeSettingLine(name, value) {
     return name + "=" + value.toFixed(6);
 }
 
+// ---------- MINECRAFT (JAVA) ----------
+// Minecraft's slider is a percentage from 0 to 200, and it is not linear:
+//   degrees per mouse count = 1.2 x (0.6 x s + 0.2) cubed, with s = percent / 200
+// so 200% is far more than twice as fast as 100%.
+// options.txt stores s itself as "mouseSensitivity:0.5" (that is 100%).
+
+const MINECRAFT_MIN_PERCENT = 0;
+const MINECRAFT_MAX_PERCENT = 200;
+
+function minecraftYaw(percent) {
+    const s = percent / 200;
+    return 1.2 * Math.pow(0.6 * s + 0.2, 3);
+}
+
+// The reverse: which percent gives this many degrees per count?
+//   percent      the whole number to set on the slider
+//   setting      the exact options.txt value (s) for a perfect match
+//   errorPercent how far off the whole percent is (positive = faster)
+//   exact        true when the whole percent is already right
+//   outOfRange   true when even 0% or 200% can't reach it
+function minecraftFromYaw(targetYaw) {
+    // Undo the formula step by step: divide by 1.2, cube root, undo 0.6s + 0.2.
+    const s = (Math.cbrt(targetYaw / 1.2) - 0.2) / 0.6;
+    const exactPercent = s * 200;
+
+    const rounded = Math.round(exactPercent);
+    const percent = Math.min(Math.max(rounded, MINECRAFT_MIN_PERCENT), MINECRAFT_MAX_PERCENT);
+    const errorPercent = (minecraftYaw(percent) / targetYaw - 1) * 100;
+
+    return {
+        percent: percent,
+        setting: s,
+        errorPercent: errorPercent,
+        exact: Math.abs(errorPercent) < EXACT_TOLERANCE_PERCENT,
+        outOfRange: exactPercent < MINECRAFT_MIN_PERCENT || exactPercent > MINECRAFT_MAX_PERCENT
+    };
+}
+
+function minecraftNote(result) {
+    if (result.outOfRange) {
+        const way = result.percent === MINECRAFT_MAX_PERCENT ? "fast" : "slow";
+        return "Minecraft's slider can't go that " + way + ". " + result.percent + "% is the closest.";
+    }
+    if (result.exact) {
+        return "Exact match.";
+    }
+    return (
+        speedWords(result.errorPercent) + " than exact. For an exact match, set mouseSensitivity:" +
+        result.setting.toFixed(6) + " in options.txt."
+    );
+}
+
 // ---------- EXPORTS FOR THE TESTS ----------
 // In the browser "module" does not exist, so this block is skipped and the
 // functions above are simply global. In Node (the tests) it hands them over.
@@ -169,6 +221,9 @@ if (typeof module !== "undefined") {
         siegeHipNote,
         siegeScopeResultText,
         siegeScopeNote,
-        siegeSettingLine
+        siegeSettingLine,
+        minecraftYaw,
+        minecraftFromYaw,
+        minecraftNote
     };
 }
