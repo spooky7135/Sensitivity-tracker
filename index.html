@@ -54,11 +54,22 @@
             </div>
 
             <div class="input-group">
-                <label for="sensitivity">Current sensitivity</label>
+                <label for="sensitivity" id="sensitivity-label">Current sensitivity</label>
                 <input
                     type="number"
                     id="sensitivity"
                     placeholder="0.35"
+                    step="any"
+                >
+            </div>
+
+            <!-- Only shown when converting FROM Rainbow Six Siege -->
+            <div class="input-group" id="siege-from" hidden>
+                <label for="siege-multiplier">Multiplier in settings file</label>
+                <input
+                    type="number"
+                    id="siege-multiplier"
+                    value="0.02"
                     step="any"
                 >
             </div>
@@ -77,6 +88,9 @@
                 <button type="button" id="copy-button" class="small-button" disabled>Copy</button>
             </div>
 
+            <!-- Only shown when converting TO Rainbow Six Siege -->
+            <p class="hip-note" id="hip-note" hidden></p>
+
             <!-- The ruler: how far the mouse travels for one full turn -->
             <div class="ruler" aria-hidden="true">
                 <div class="ruler-track">
@@ -93,6 +107,39 @@
 
             <p class="result-note">Mouse travel for one full turn: <span id="cm-result">---</span></p>
             <p class="result-note">eDPI: <span id="edpi-result">---</span></p>
+        </section>
+
+        <!-- Only shown when converting TO Rainbow Six Siege -->
+        <section id="siege-scopes" class="siege-scopes" aria-live="polite" hidden>
+            <h2>Scopes: same mouse travel as hip-fire</h2>
+
+            <div class="fields">
+                <div class="input-group">
+                    <label for="siege-fov">Siege FOV (60 to 90)</label>
+                    <input
+                        type="number"
+                        id="siege-fov"
+                        value="90"
+                        min="60"
+                        max="90"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="siege-scope">Scope</label>
+                    <select id="siege-scope"></select>
+                </div>
+            </div>
+
+            <p class="scope-result" id="scope-result"></p>
+            <p class="result-note" id="scope-note"></p>
+            <p class="result-note" id="xfactor-result"></p>
+
+            <p class="about" id="siege-about">
+                Scope values follow Ubisoft's 2020 sensitivity guide and have not
+                been confirmed for the current season. Settings file: Documents,
+                My Games, Rainbow Six - Siege, your account folder, GameSettings.ini.
+            </p>
         </section>
 
     </main>

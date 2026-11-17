@@ -111,6 +111,55 @@ function siegeScopeSlider(fovMultiplier, fov, xFactor) {
     };
 }
 
+// ---------- SIEGE WORDING ----------
+// The sentences the page shows. They are here, not in script.js,
+// so the tests can check the exact wording too.
+
+// 4.17 becomes "4.2% faster", -0.66 becomes "0.7% slower".
+function speedWords(errorPercent) {
+    const direction = errorPercent > 0 ? "faster" : "slower";
+    return Math.abs(errorPercent).toFixed(1) + "% " + direction;
+}
+
+// hip is the object returned by siegeHipFromNeeded.
+function siegeHipNote(hip) {
+    if (hip.exact) {
+        return "Exact match. Leave MouseSensitivityMultiplierUnit at 0.02.";
+    }
+    return (
+        "Slider " + hip.slider + " alone is " + speedWords(hip.errorPercent) +
+        ". Add MouseSensitivityMultiplierUnit = " + hip.multiplier.toFixed(6) +
+        " for an exact match."
+    );
+}
+
+// scope is the object returned by siegeScopeSlider.
+function siegeScopeResultText(label, scope) {
+    const start = scope.exact ? "Slider for " : "Suggested slider for ";
+    return start + label + ": " + scope.slider;
+}
+
+// hipCm is the mouse travel for a full turn in hip-fire.
+// A scope that is 0.7% slower needs slightly MORE travel, so we divide.
+function siegeScopeNote(scope, hipCm) {
+    if (scope.exact) {
+        return "";
+    }
+    const scopedCm = hipCm / (1 + scope.errorPercent / 100);
+    return (
+        "Closest Siege allows: " + speedWords(scope.errorPercent) +
+        " than an exact match (" + scopedCm.toFixed(2) + " cm instead of " +
+        hipCm.toFixed(2) + " cm)"
+    );
+}
+
+function siegeXFactorText(xFactor) {
+    return (
+        "Settings file: XFactorAiming = " + xFactor.toFixed(6) +
+        " (one value for every scope)"
+    );
+}
+
 // ---------- EXPORTS FOR THE TESTS ----------
 // In the browser "module" does not exist, so this block is skipped and the
 // functions above are simply global. In Node (the tests) it hands them over.
@@ -125,6 +174,10 @@ if (typeof module !== "undefined") {
         isValidSiegeFov,
         fovAdjustment,
         siegeXFactor,
-        siegeScopeSlider
+        siegeScopeSlider,
+        siegeHipNote,
+        siegeScopeResultText,
+        siegeScopeNote,
+        siegeXFactorText
     };
 }

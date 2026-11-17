@@ -13,7 +13,11 @@ const {
     isValidSiegeFov,
     fovAdjustment,
     siegeXFactor,
-    siegeScopeSlider
+    siegeScopeSlider,
+    siegeHipNote,
+    siegeScopeResultText,
+    siegeScopeNote,
+    siegeXFactorText
 } = require("../sens-math.js");
 
 // Passes when two numbers are within "tolerance" of each other.
@@ -122,4 +126,63 @@ test("hip-fire round trip is exact with the multiplier", function () {
 test("isValidSiegeFov", function () {
     [60, 75, 90].forEach(function (f) { assert.strictEqual(isValidSiegeFov(f), true); });
     [59.9, 90.1, 0, NaN, -5].forEach(function (f) { assert.strictEqual(isValidSiegeFov(f), false); });
+});
+
+// ---------- SIEGE WORDING ----------
+// The sentences the page shows. The example is Valorant 0.3143 at 800 DPI.
+const SIEGE_YAW = 0.00572958;
+const exampleNeeded = convertSens(0.3143, 0.07, SIEGE_YAW);
+const exampleHipCm = cmPer360(0.3143, 0.07, 800);
+
+test("hip-fire note when the slider is not exact", function () {
+    assert.strictEqual(
+        siegeHipNote(siegeHipFromNeeded(exampleNeeded)),
+        "Slider 4 alone is 4.2% faster. Add MouseSensitivityMultiplierUnit = 0.019199 for an exact match."
+    );
+});
+
+test("hip-fire note when the slider is exact", function () {
+    assert.strictEqual(
+        siegeHipNote(siegeHipFromNeeded(10)),
+        "Exact match. Leave MouseSensitivityMultiplierUnit at 0.02."
+    );
+});
+
+test("hip-fire note says slower when the slider rounds down", function () {
+    assert.strictEqual(
+        siegeHipNote(siegeHipFromNeeded(4.4)),
+        "Slider 4 alone is 9.1% slower. Add MouseSensitivityMultiplierUnit = 0.022000 for an exact match."
+    );
+});
+
+test("scope result text: suggested and exact", function () {
+    const x = siegeXFactor(M, 90);
+    assert.strictEqual(
+        siegeScopeResultText("2.5x", siegeScopeSlider(0.42, 90, x)),
+        "Suggested slider for 2.5x: 21"
+    );
+    assert.strictEqual(
+        siegeScopeResultText("12.0x", siegeScopeSlider(0.092, 90, x)),
+        "Slider for 12.0x: 100"
+    );
+});
+
+test("scope note gives the error and both distances", function () {
+    const x = siegeXFactor(M, 90);
+    assert.strictEqual(
+        siegeScopeNote(siegeScopeSlider(0.42, 90, x), exampleHipCm),
+        "Closest Siege allows: 0.7% slower than an exact match (52.30 cm instead of 51.95 cm)"
+    );
+});
+
+test("scope note is empty when the slider is exact", function () {
+    const x = siegeXFactor(M, 90);
+    assert.strictEqual(siegeScopeNote(siegeScopeSlider(0.092, 90, x), exampleHipCm), "");
+});
+
+test("XFactorAiming text", function () {
+    assert.strictEqual(
+        siegeXFactorText(siegeXFactor(M, 90)),
+        "Settings file: XFactorAiming = 0.138155 (one value for every scope)"
+    );
 });

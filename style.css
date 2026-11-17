@@ -21,6 +21,11 @@
     box-sizing: border-box;
 }
 
+/* The "hidden" attribute must win, even over display: grid or flex below. */
+[hidden] {
+    display: none !important;
+}
+
 /* ---------- PAGE ---------- */
 body {
     margin: 0;
@@ -271,6 +276,45 @@ button:disabled {
     line-height: 1;
     color: var(--accent);
     font-variant-numeric: tabular-nums; /* digits all the same width */
+}
+
+/* ---------- RAINBOW SIX SIEGE ---------- */
+/* The line under the big number: how to make the slider exact. */
+.hip-note {
+    max-width: 52ch;
+    margin: -8px 0 20px;
+    color: var(--text);
+}
+
+.siege-scopes {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+}
+
+.siege-scopes h2 {
+    margin: 0 0 18px;
+    font-family: var(--display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.scope-result {
+    margin: 0 0 8px;
+    font-family: var(--display);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+}
+
+.about {
+    max-width: 60ch;
+    margin: 16px 0 0;
+    font-size: 0.875rem;
+    color: var(--muted);
 }
 
 /* ---------- RULER ---------- */

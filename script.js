@@ -6,6 +6,14 @@
 // Filled from the Supabase "games" table by loadGames() below.
 let games = [];
 
+// Scope rows from the "game_scopes" table. Only Rainbow Six Siege has any.
+let scopes = [];
+
+// Games with calc_type "siege" need the Siege handling below.
+function isSiege(game) {
+    return game.calc_type === "siege";
+}
+
 // The maths (cmPer360, convertSens, rulerPercent and the Siege functions)
 // lives in sens-math.js, which index.html also loads before this file.
 
@@ -23,6 +31,18 @@ const resultLabel = document.getElementById("result-label");
 const rulerFill = document.getElementById("ruler-fill");
 const swapButton = document.getElementById("swap-button");
 const copyButton = document.getElementById("copy-button");
+
+// Rainbow Six Siege parts of the page
+const sensitivityLabel = document.getElementById("sensitivity-label");
+const siegeFrom = document.getElementById("siege-from");
+const siegeMultiplierInput = document.getElementById("siege-multiplier");
+const hipNote = document.getElementById("hip-note");
+const siegeScopes = document.getElementById("siege-scopes");
+const siegeFovInput = document.getElementById("siege-fov");
+const siegeScopeSelect = document.getElementById("siege-scope");
+const scopeResult = document.getElementById("scope-result");
+const scopeNote = document.getElementById("scope-note");
+const xFactorResult = document.getElementById("xfactor-result");
 
 // ---------- FILL THE DROPDOWNS ----------
 // For each game, create an <option> whose value is its index in games.
@@ -43,7 +63,7 @@ async function loadGames() {
 
     const { data, error } = await db
         .from("games")
-        .select("name, yaw")
+        .select("id, name, yaw, calc_type")
         .order("name");
 
     // RLS blocking a read gives an EMPTY list, not an error, so check both.
@@ -72,9 +92,38 @@ async function loadGames() {
             toGameSelect.value = wantedIndex === 0 ? 1 : 0; // keep "to" different
         }
     }
+    // Scopes are a second request. If it fails, hip-fire still converts
+    // and the scope section says it could not load them.
+    const scopeResponse = await db
+        .from("game_scopes")
+        .select("game_id, label, fov_multiplier, sort_order")
+        .order("sort_order");
+
+    if (scopeResponse.error || !scopeResponse.data) {
+        console.error(scopeResponse.error || "No scopes returned");
+        scopes = [];
+    } else {
+        scopes = scopeResponse.data;
+    }
+    fillScopeSelect();
+
     errorMessage.textContent = "";
     calculateButton.disabled = false;
     swapButton.disabled = false;
+
+    // Show or hide the Siege parts for the games selected at the start.
+    liveUpdate();
+}
+
+// One <option> per scope, with its position in "scopes" as the value.
+function fillScopeSelect() {
+    siegeScopeSelect.innerHTML = "";
+    scopes.forEach(function (scope, index) {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = scope.label;
+        siegeScopeSelect.appendChild(option);
+    });
 }
 
 loadGames();
@@ -129,6 +178,10 @@ function burstConfetti(startX, startY) {
 // The swap and copy buttons both read it.
 let lastConverted = null;
 
+// When the "to" game is Siege: the settings file multiplier that goes with
+// the slider in lastConverted. The swap button uses it. Otherwise null.
+let lastMultiplier = null;
+
 // Reads the form and updates the result area.
 // Returns true if a conversion was shown, false if the inputs aren't usable yet.
 function updateResults() {
@@ -136,34 +189,108 @@ function updateResults() {
         return false; // games haven't loaded
     }
 
+    const fromGame = games[fromGameSelect.value];
+    const toGame = games[toGameSelect.value];
+    const fromIsSiege = isSiege(fromGame);
+    const toIsSiege = isSiege(toGame);
+
+    // Siege's extra input appears only when converting FROM Siege.
+    siegeFrom.hidden = !fromIsSiege;
+    sensitivityLabel.textContent = fromIsSiege ? "Current hip-fire slider" : "Current sensitivity";
+
     const dpi = Number(dpiInput.value);
-    const sens = Number(sensitivityInput.value);
+    let sens = Number(sensitivityInput.value);
 
     // Number("") is 0 and Number("abc") is NaN, so reject both.
-    if (!(dpi > 0) || !(sens > 0)) {
+    let valid = dpi > 0 && sens > 0;
+
+    if (fromIsSiege) {
+        // Siege's real sensitivity is the slider combined with the multiplier.
+        const multiplier = Number(siegeMultiplierInput.value);
+        valid = valid && multiplier > 0;
+        sens = siegeEffectiveSens(sens, multiplier);
+    }
+
+    if (!valid) {
         lastConverted = null;
+        lastMultiplier = null;
         edpiResult.textContent = "---";
         cmResult.textContent = "---";
         convertedResult.textContent = "---";
         resultLabel.textContent = "Converted sensitivity";
         rulerFill.style.width = "0%";
         copyButton.disabled = true;
+        hipNote.hidden = true;
+        siegeScopes.hidden = true;
         return false;
     }
 
-    const fromGame = games[fromGameSelect.value];
-    const toGame = games[toGameSelect.value];
     const cm = cmPer360(sens, fromGame.yaw, dpi);
+    const needed = convertSens(sens, fromGame.yaw, toGame.yaw);
 
-    lastConverted = convertSens(sens, fromGame.yaw, toGame.yaw).toFixed(4);
+    if (toIsSiege) {
+        // Siege only takes whole numbers, so show the closest slider and say
+        // how to make it exact with the settings file.
+        const hip = siegeHipFromNeeded(needed);
+        lastConverted = String(hip.slider);
+        lastMultiplier = hip.multiplier;
+        resultLabel.textContent = (hip.exact ? "" : "Suggested ") + toGame.name + " slider";
+        hipNote.textContent = siegeHipNote(hip);
+        hipNote.hidden = false;
+    } else {
+        lastConverted = needed.toFixed(4);
+        lastMultiplier = null;
+        resultLabel.textContent = toGame.name + " sensitivity";
+        hipNote.hidden = true;
+    }
 
     edpiResult.textContent = (dpi * sens).toFixed(2);
     cmResult.textContent = cm.toFixed(2) + " cm";
     convertedResult.textContent = lastConverted;
-    resultLabel.textContent = toGame.name + " sensitivity";
     rulerFill.style.width = rulerPercent(cm) + "%"; // CSS animates the change
     copyButton.disabled = false;
+
+    updateScopes(toIsSiege, toGame, cm);
     return true;
+}
+
+// ---------- SIEGE SCOPES ----------
+// Shows the slider for the chosen scope and the one XFactorAiming value.
+// hipCm is the mouse travel for a full turn that every scope should match.
+function updateScopes(show, toGame, hipCm) {
+    siegeScopes.hidden = !show;
+    if (!show) {
+        return;
+    }
+
+    scopeNote.textContent = "";
+    xFactorResult.textContent = "";
+
+    const gameScopes = scopes.filter(function (scope) {
+        return scope.game_id === toGame.id;
+    });
+    const selected = scopes[siegeScopeSelect.value];
+
+    if (gameScopes.length === 0 || !selected) {
+        scopeResult.textContent = "Could not load scopes.";
+        return;
+    }
+
+    const fov = Number(siegeFovInput.value);
+    if (!isValidSiegeFov(fov)) {
+        scopeResult.textContent = "Enter a FOV between 60 and 90.";
+        return;
+    }
+
+    const multipliers = gameScopes.map(function (scope) {
+        return scope.fov_multiplier;
+    });
+    const xFactor = siegeXFactor(multipliers, fov);
+    const scope = siegeScopeSlider(selected.fov_multiplier, fov, xFactor);
+
+    scopeResult.textContent = siegeScopeResultText(selected.label, scope);
+    scopeNote.textContent = siegeScopeNote(scope, hipCm);
+    xFactorResult.textContent = siegeXFactorText(xFactor);
 }
 
 // ---------- LIVE RESULTS ----------
@@ -180,6 +307,9 @@ dpiInput.addEventListener("input", liveUpdate);
 sensitivityInput.addEventListener("input", liveUpdate);
 fromGameSelect.addEventListener("change", liveUpdate);
 toGameSelect.addEventListener("change", liveUpdate);
+siegeMultiplierInput.addEventListener("input", liveUpdate);
+siegeFovInput.addEventListener("input", liveUpdate);
+siegeScopeSelect.addEventListener("change", liveUpdate);
 
 // ---------- CONVERT BUTTON ----------
 // Same calculation, plus the error message or the confetti.
@@ -202,7 +332,7 @@ calculateButton.addEventListener("click", function (event) {
 
         burstConfetti(x, y);
     } else {
-        errorMessage.textContent = "Please enter a DPI and sensitivity greater than 0.";
+        errorMessage.textContent = "Please enter a DPI, sensitivity and multiplier greater than 0.";
     }
 });
 
@@ -210,6 +340,9 @@ calculateButton.addEventListener("click", function (event) {
 // Flips the two games. If there is a result, it becomes the new input,
 // so swapping converts back the other way.
 swapButton.addEventListener("click", function () {
+    // Remember the multiplier before the swap changes the results.
+    const multiplierForSwap = lastMultiplier;
+
     const oldFrom = fromGameSelect.value;
     fromGameSelect.value = toGameSelect.value;
     toGameSelect.value = oldFrom;
@@ -217,6 +350,15 @@ swapButton.addEventListener("click", function () {
     if (lastConverted !== null) {
         sensitivityInput.value = lastConverted;
     }
+
+    // If the result was a Siege slider, its multiplier comes along too,
+    // so swapping back gives the original sensitivity. Otherwise reset it.
+    if (multiplierForSwap !== null) {
+        siegeMultiplierInput.value = multiplierForSwap.toFixed(6);
+    } else {
+        siegeMultiplierInput.value = String(SIEGE_DEFAULT_MULTIPLIER);
+    }
+
     liveUpdate();
 });
 
