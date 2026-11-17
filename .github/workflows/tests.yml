@@ -1,0 +1,25 @@
+# Runs the tests (npm test) on every push and pull request.
+# GitHub shows a green tick or a red X next to each commit.
+
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Download the repo's code onto GitHub's machine.
+      - uses: actions/checkout@v4
+
+      # Install Node, the same major version used to write the tests.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # No packages to install: the tests use Node's built-in test runner.
+      - name: Run the tests
+        run: npm test
