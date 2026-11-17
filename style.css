@@ -245,28 +245,8 @@ select:focus-visible {
     color: var(--muted);
 }
 
-/* ---------- CONVERT BUTTON ---------- */
-.convert-button {
-    width: 100%;
-    padding: 14px;
-    font-family: var(--display);
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: #12071f; /* dark text on neon: easy to read */
-    background: var(--accent);
-    border: none;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: background-color 0.15s;
-}
-
-.convert-button:hover {
-    background: var(--accent-bright);
-}
-
 /* ---------- SWAP AND COPY BUTTONS ---------- */
-/* Quieter than Convert: outlined, so Convert stays the main action. */
+/* Outlined and quiet, so the converted number stays the main thing. */
 .small-button {
     padding: 12px 16px;
     font-family: var(--body);
@@ -297,15 +277,15 @@ button:disabled {
 
 .error {
     min-height: 1.3em; /* reserves space so the page doesn't jump */
-    margin: 12px 0 0;
+    margin: -8px 0 0;  /* sits just under the inputs it is about */
     font-size: 0.9375rem;
     color: var(--error);
 }
 
 /* ---------- RESULT ---------- */
 #result {
-    margin-top: 28px;
-    padding-top: 28px;
+    margin-top: 12px;
+    padding-top: 24px;
     border-top: 1px solid var(--line);
 }
 
@@ -618,7 +598,6 @@ code {
 @media (prefers-reduced-motion: reduce) {
     .ruler-fill,
     .dial,
-    .convert-button,
     .small-button {
         transition: none;
     }

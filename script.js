@@ -27,7 +27,6 @@ const fromGameSelect = document.getElementById("from-game");
 const toGameSelect = document.getElementById("to-game");
 const dpiInput = document.getElementById("dpi");
 const sensitivityInput = document.getElementById("sensitivity");
-const calculateButton = document.getElementById("calculate-button");
 const edpiResult = document.getElementById("edpi-result");
 const cmResult = document.getElementById("cm-result");
 const convertedResult = document.getElementById("converted-result");
@@ -85,7 +84,6 @@ function fillGameSelect(select) {
 
 // async: this function can "await" (wait for) the network without freezing the page.
 async function loadGames() {
-    calculateButton.disabled = true;
     errorMessage.textContent = "Loading games...";
 
     const { data, error } = await db
@@ -97,7 +95,7 @@ async function loadGames() {
     if (error || !data || data.length === 0) {
         console.error(error || "No games returned");
         errorMessage.textContent = "Could not load games. Please refresh and try again.";
-        return; // button stays disabled: there is nothing to convert
+        return; // Swap stays disabled: there is nothing to convert
     }
 
     games = data;
@@ -135,7 +133,6 @@ async function loadGames() {
     fillScopeSelect();
 
     errorMessage.textContent = "";
-    calculateButton.disabled = false;
     swapButton.disabled = false;
 
     // Show or hide the Siege parts for the games selected at the start.
@@ -360,13 +357,33 @@ function updateScopes(show, toGame) {
 }
 
 // ---------- LIVE RESULTS ----------
-// Runs on every keystroke and dropdown change. Quiet: no error text, no confetti.
+// Runs on every keystroke and dropdown change.
+// An error only shows once both boxes have something typed in them,
+// so an empty form never starts with a warning.
 function liveUpdate() {
     if (games.length === 0) {
         return;
     }
-    errorMessage.textContent = "";
-    updateResults();
+
+    if (updateResults()) {
+        errorMessage.textContent = "";
+        return;
+    }
+
+    const bothTyped = dpiInput.value.trim() !== "" && sensitivityInput.value.trim() !== "";
+    errorMessage.textContent = bothTyped ? invalidInputMessage() : "";
+}
+
+// Says which numbers are wrong, in the terms of the "from" game.
+function invalidInputMessage() {
+    const fromGame = games[fromGameSelect.value];
+    if (isSiege(fromGame)) {
+        return "Enter a DPI, slider and settings file multiplier above 0.";
+    }
+    if (isMinecraft(fromGame)) {
+        return "Enter a DPI above 0 and a Minecraft sensitivity above 0, up to 200%.";
+    }
+    return "Enter a DPI and sensitivity above 0.";
 }
 
 dpiInput.addEventListener("input", liveUpdate);
@@ -376,31 +393,6 @@ toGameSelect.addEventListener("change", liveUpdate);
 siegeMultiplierInput.addEventListener("input", liveUpdate);
 siegeFovInput.addEventListener("input", liveUpdate);
 siegeScopeSelect.addEventListener("change", liveUpdate);
-
-// ---------- CONVERT BUTTON ----------
-// Same calculation, plus the error message or the confetti.
-// "event" describes the click, including where the pointer was.
-calculateButton.addEventListener("click", function (event) {
-    if (updateResults()) {
-        errorMessage.textContent = "";
-
-        // Start at the mouse pointer.
-        let x = event.clientX;
-        let y = event.clientY;
-
-        // Pressing Enter or Space on the button has no pointer position
-        // (detail is 0), so use the middle of the button instead.
-        if (event.detail === 0) {
-            const box = calculateButton.getBoundingClientRect();
-            x = box.left + box.width / 2;
-            y = box.top + box.height / 2;
-        }
-
-        burstConfetti(x, y);
-    } else {
-        errorMessage.textContent = "Please enter a DPI, sensitivity and multiplier greater than 0.";
-    }
-});
 
 // ---------- SWAP BUTTON ----------
 // Flips the two games. If there is a result, it becomes the new input,
@@ -431,11 +423,15 @@ swapButton.addEventListener("click", function () {
 // ---------- COPY BUTTONS ----------
 // Copies text and briefly shows "Copied" on the button that was clicked.
 // Used by the main Copy button and by each settings file line.
+// Returns true if the copy worked.
 async function copyText(button, text) {
+    let copied = false;
+
     // The clipboard can refuse (old browser, blocked permission), so try/catch.
     try {
         await navigator.clipboard.writeText(text);
         button.textContent = "Copied";
+        copied = true;
     } catch (err) {
         console.error(err);
         button.textContent = "Copy failed";
@@ -445,11 +441,29 @@ async function copyText(button, text) {
     setTimeout(function () {
         button.textContent = "Copy";
     }, 1500);
+
+    return copied;
 }
 
-copyButton.addEventListener("click", function () {
-    if (lastConverted !== null) {
-        copyText(copyButton, lastConverted);
+// Where a click happened on screen. Pressing Enter or Space on a button has
+// no pointer position (event.detail is 0), so use the button's middle instead.
+function clickPoint(event, button) {
+    if (event.detail === 0) {
+        const box = button.getBoundingClientRect();
+        return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+    }
+    return { x: event.clientX, y: event.clientY };
+}
+
+// The main Copy button also celebrates with confetti from the pointer.
+copyButton.addEventListener("click", async function (event) {
+    if (lastConverted === null) {
+        return;
+    }
+    // Read the position now: the event's details aren't reliable after "await".
+    const point = clickPoint(event, copyButton);
+    if (await copyText(copyButton, lastConverted)) {
+        burstConfetti(point.x, point.y);
     }
 });
 
