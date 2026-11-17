@@ -24,7 +24,8 @@ label {
     margin-bottom: 5px;
 }
 
-input {
+input,
+select {
     width: 100%;
     padding: 10px;
     box-sizing: border-box;
@@ -38,4 +39,9 @@ button {
 
 #result {
     margin-top: 20px;
+}
+
+.error {
+    color: #c0392b;
+    min-height: 1.2em;
 }

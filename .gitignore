@@ -1,0 +1,10 @@
+# Installed packages: rebuilt with `npm install`
+node_modules/
+
+# Secrets: never commit these
+.env
+.env.*
+
+# OS junk
+.DS_Store
+Thumbs.db

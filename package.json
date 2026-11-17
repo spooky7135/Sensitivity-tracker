@@ -2,11 +2,7 @@
   "name": "sensitivity-tracker",
   "version": "1.0.0",
   "description": "",
-  "main": "script.js",
-  "scripts": {
-    "start": "node server.js:",
-    "dev": "nodemon server.js"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/spooky7135/Sensitivity-tracker.git"
@@ -18,14 +14,5 @@
   "bugs": {
     "url": "https://github.com/spooky7135/Sensitivity-tracker/issues"
   },
-  "homepage": "https://github.com/spooky7135/Sensitivity-tracker#readme",
-  "dependencies": {
-    "cors": "^2.8.6",
-    "dotenv": "^18.0.8",
-    "express": "^5.3.0",
-    "pg": "^8.23.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
-  }
+  "homepage": "https://github.com/spooky7135/Sensitivity-tracker#readme"
 }
