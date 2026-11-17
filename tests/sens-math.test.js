@@ -21,7 +21,7 @@ const {
     minecraftYaw,
     minecraftFromYaw,
     minecraftNote
-} = require("../sens-math.js");
+} = require("../site/sens-math.js");
 
 // Passes when two numbers are within "tolerance" of each other.
 // Decimals in JavaScript are rarely exactly equal, so we compare this way.

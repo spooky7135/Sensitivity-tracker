@@ -1,0 +1,36 @@
+# Keeps the Supabase database from pausing.
+#
+# Supabase pauses free projects after 7 days with little database activity.
+# This job reads one row from the games table twice a week (Monday and
+# Thursday), so the gap is never more than 4 days.
+#
+# It uses the same public (publishable) key as the website: it can only read,
+# because Row Level Security blocks writes.
+#
+# Run it by hand: GitHub repo > Actions > Keep Supabase awake > Run workflow.
+
+name: Keep Supabase awake
+
+on:
+  schedule:
+    # Minute Hour Day-of-month Month Day-of-week (in UTC): 09:00 on Monday and Thursday.
+    - cron: "0 9 * * 1,4"
+  workflow_dispatch: # adds the "Run workflow" button
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read one game from Supabase
+        run: |
+          response=$(curl --silent --show-error --fail --max-time 30 \
+            "https://srfalmsrlmfgmhnfimow.supabase.co/rest/v1/games?select=id&limit=1" \
+            -H "apikey: sb_publishable__EDQX1-o-38PIHakzfTg7g_UMCSnBXi")
+          echo "Response: $response"
+
+          # An empty list would mean the read worked but returned no games.
+          if [ "$response" = "[]" ]; then
+            echo "The games table came back empty." >&2
+            exit 1
+          fi

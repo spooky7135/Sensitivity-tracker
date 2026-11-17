@@ -2,7 +2,7 @@
 const test = require("node:test");
 const assert = require("node:assert");
 
-const { filterGames } = require("../game-search.js");
+const { filterGames } = require("../site/game-search.js");
 
 const NAMES = [
     "Apex Legends",
